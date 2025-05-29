@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Document</title>
+</head>
+
+<body>
+
+ <section class="hero">
+    <div class="hero-text">
+      <h1>Capture Life in HD</h1>
+      <p>Shop the best cameras for photography and videography. High quality, unbeatable prices.</p>
+      <button>Shop Now</button>
+    </div>
+    <div class="hero-image">
+      <img src="https://photographyproject.uk/wp-content/uploads/2024/01/06-3416-post/canon-camera-e1704554602159.jpg" alt="Camera">
+    </div>
+  </section>
+
+  <section id="main">
+
+    <div id="message"></div>
+
+    <section id="left-product-form">
+
+      <form id="form" action="ProductAddUP">
+
+        <div class="product-form">
+          <label for="productName"> Name </label> <br>
+          <input type="text" id="name">
+        </div>
+
+        <div class="product-form">
+          <label for="productDescription"> Description </label><br>
+          <textarea name="" id="description"></textarea>
+        </div>
+
+        <div class="product-form">
+          <label for="imageURL"> Image URL </label><br>
+          <textarea name="" id="imageURL"></textarea>
+        </div>
+
+
+        <div class="product-form">
+          <label for="price"> Price</label><br>
+          <input type="number" id="price">
+        </div>
+
+        <div class="product-form">
+          <label for="productName"> Brand </label><br>
+          <input type="text" id="brand">
+        </div><br>
+
+        <div class="product-form">
+         <button>Submit</button>
+         </div>
+
+      </form>
+
+    </section>
+
+    <section>
+      <!-- <h1>Product</h1> -->
+      <div id="product-container">
+      </div>
+    </section>
+
+  </section>
+
+  <script src="script.js"></script>
+</body>
+
+</html>

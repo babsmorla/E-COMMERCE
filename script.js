@@ -1,252 +1,141 @@
-
-
 const inputForm = document.getElementById("left-product-form");
 const messageContainer = document.getElementById("message");
 const container = document.getElementById("product-container");
-const baseUrl = "https://fakestoreapi.com/products";
 
+const baseUrl = "https://btl-products-api.onrender.com/products";
 
-// fecth Data and Store in local Storage
-// Store data retrieve from API into the local storgae
-
-const fetchAndStoredData = async () => {
-
-try {
-  const response = await fetch(baseUrl, {method: "GET"});
-const data = await response.json();
-
-localStorage.setItem("apiData",JSON.stringify(data));
-console.log("Data stored in localStorage", data);
-
-
-} catch (error) {
-  console.log("Error fecthing API ",error);
-} finally {
-  console.log("")
-}};
-
-
-// Function to display ONLY data from localStorage
-
-const loadAndDisplayLocalData = () => {
-  const dataStored = JSON.parse(localStorage.getItem("apiData"));
-
-  if (dataStored && Array.isArray(dataStored)) {
-    console.log("Data from local storage is displayed");
-    displayData(dataStored);
-
-  } else {
-    console.warn("No data in localStorage. Re-fetching");
-    fetchAndStoreData();
+// ✅ Fetch and display products
+const getProducts = async () => {
+  try {
+    const response = await fetch(baseUrl, { method: "GET" });
+    const data = await response.json();
+    displayProducts(data);
+  } catch (error) {
+    console.error("Error fetching products:", error);
   }
 };
 
+// ✅ Display products in the DOM
+const displayProducts = (data) => {
+  container.innerHTML = "";
 
+  data.forEach((item) => {
+    const productCard = document.createElement("div");
+    productCard.classList.add("product-card");
 
+    productCard.innerHTML = `
+      <img src="${item.image}" alt="${item.title}" />
+      <h2>${item.title}</h2>
+      <p>${item.description}</p>
+      <p>Rating: ${item.rating}</p>
+      <h3>Price: $${item.price}</h3>
+      <p>Brand: ${item.brand}</p>
+      <p>Category: ${item.category}</p>
+      <button class="btn" data-id="${item.id}">Delete</button>
+    `;
 
-// Diplay Stored data after retrieving from localStorage
+    container.appendChild(productCard);
+  });
 
-const displayData = (data) => {
-container.innerHTML = "";
-console.log("Dipslayed Data", data);
-
-data.forEach((item, index) => {
-
-  let productCard = document.createElement("div");
-  productCard.classList.add("product-card");
-  productCard.innerHTML =  `<img src= ${item.image} alt = ${item.title}/>
-  <h2>${item.title} </h2>
-   <p>${item.description} </p>
-  <p>Rating: ${item.rating.rate} </p>
-  <h3>Price: $${parseFloat (item.price)}</h3>
-  <button class="btn"> Delete </button>  
-  `;
-
-  container.appendChild(productCard);
-  
-});
-
+  attachDeleteEvents(); // ✅ Attach delete after rendering
 };
-loadAndDisplayLocalData();
-fetchAndStoredData();
 
-
-
-
-
-// **************************************************************************************** INPUT FORM AND VALIDATION
-
-
-inputForm.addEventListener("submit", function(event){
+// ✅ Add a new product via POST
+inputForm.addEventListener("submit", async function (event) {
   event.preventDefault();
 
   const title = document.getElementById("title").value;
   const description = document.getElementById("description").value;
- const image = document.getElementById("imageUrl").value;
+  const image = document.getElementById("imageUrl").value;
   const price = parseFloat(document.getElementById("price").value);
-const rate = parseFloat(document.getElementById("rate").value);
+  const rating = parseFloat(document.getElementById("rate").value);
+  const brand = document.getElementById("brand").value;
+  const category = document.getElementById("category").value;
 
-  if (!title || !description || !image || !price || !rate){
-    messageContainer.style.display ="block"
-    messageContainer.innerHTML ="Please fill in all fields."
-           messageContainer.style.color="red"
+  if (
+    !title ||
+    !description ||
+    !image ||
+    !price ||
+    !rating ||
+    !brand ||
+    !category
+  ) {
+    messageContainer.innerHTML = "Please fill in all fields.";
+    messageContainer.style.color = "red";
     return;
-  };
+  }
 
-
-const newProduct = {
-    title,
-    price,
-    description,
-    image,
-    category: "electronics", // add a dummy category as API expects it
-    rating: {
-      rate: rate,
-      count: 1
-    }
-  };
-
-
-  // Pull data from local storage
-
-  const newData = dataStored || [] ;
-
-  // push new product to existing
-
-  newData.push(newProduct);
-
-  // Save data back to local storage
-  localStorage.setItem("apiData",JSON.stringify(newData));
   
-  messageContainer.style.display ="block"
-  messageContainer.innerHTML ="Product added succesfully."
-  messageContainer.style.color="green"
 
+  const newProduct = {
+    title,
+    description,
+    price,
+    rating,
+    image,
+    brand,
+    category,
+  };
 
- productBox.innerHTML = "";
-  productCard(container);
+  console.log("Submitting:", newProduct);
 
-   getProduct();
-
+  try {
+    const response = await fetch(baseUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newProduct),
     });
 
+    if (!response.ok) throw new Error("Failed to add product");
 
-  
+    const result = await response.json();
+    messageContainer.innerHTML = "Product added successfully!";
+    messageContainer.style.color = "green";
+    // inputForm.reset();
+    getProducts(); // ✅ Refresh products after adding
+  } catch (error) {
+    console.error("Add product error:", error);
+    messageContainer.innerHTML = "Error adding product.";
+    messageContainer.style.color = "red";
+  }
 
+  inputForm.reset();
+  getProducts();
+});
 
+// ✅ Attach delete event to each button
+const attachDeleteEvents = () => {
+  const deleteButtons = document.querySelectorAll(".btn");
 
+  deleteButtons.forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const productId = btn.getAttribute("data-id");
 
+      try {
+        const response = await fetch(
+          `${baseUrl}/${productId}`,
+          {
+            method: "DELETE",
+          }
+        );
 
+        if (!response.ok)
+          throw new Error(`Delete failed with status ${response.status}`);
 
+        messageContainer.innerHTML = "Product deleted successfully!";
+        messageContainer.style.color = "Black";
+        getProducts();
+      } catch (error) {
+        console.error("Delete error:", error);
+        messageContainer.innerHTML = "Failed to delete product.";
+        messageContainer.style.color = "red";
+      }
+    });
+  });
+};
 
-
-
-
-
-// Retrive data from localStorage after storing
-
-// const dataStored = JSON.parse(localStorage.getItem("apiData"));
-// if (dataStored) {
-//   console.log("Data retrieved from localStorage", dataStored);
-//   displayData(dataStored);
-
-// } else {
-//   console.log("Data not found");
-//   fetchAndStoredData();
-  
-// }
-
-
-
-
-
-// ****************************** GENERAL CLASS LINE WITH COMMENTS ******************************
-
-// ******************************************************* BEGIN LINE
-
-// target out html container
-// fetch our product from the API
-// display the product in the container
-// JSON javascript Objects Notation
-// ES5 syntax - fnctn def
-// if you use the mouse hover over something the : after the last , is the return type
-// HTTP status quos
-// http methods
-// A sync action in fetching api
-// for 
-
-
-// ******************************************************** ES6 START LINE
-
-// Es6
-// use async to a function anytime you want to use await
-// the await just tries to alert the fetch to wait after it had given the promise
-
-
-// const container = document.getElementById("product-container");
-// const baseUrl = "https://fakestoreapi.com/products";
-
-// const fetchProducts = async () => {
-
-// try {
-//   const response = await fetch(baseUrl, {method: "GET"});
-// const data = await response.json();
-
-// console.log(data);
-
-// } catch (error) {
-//   console.log(error);
-// } finally {
-//   console.log("");
-// }
-// };
-
-// fetchProducts();
-
-// ************************************************************ ES6 ENDLINE - ES5 NEW LINE
-
-// const container = document.getElementById("product-container");
-// const baseUrl = "https://fakestoreapi.com/products";
-
-// check function at this point later!!
-// const fetchProducts = () => {
-
-// introduce method to fetch API and assign a varibale to the fetch call
-
-//  const response = fetch(baseUrl, {
-  // the get or bringing get is optional not all specify it
-    // method: "GET",
-    // key : value denotes this is a method
-  // });
-
-// es5 
-// this gives you a promise
-// log response to see promise
-// console.log(response);
-// response.then((res) => res.json()).then((res) => console.log(res))
-// };
-
-// fetchProducts();
-
-// ************************************************************ ES5
-
-//Es5 method 2 VVVVV
-// const data = response.then((res) => res.json())
-// data.then((res) => console.log(res))
-// };
-
-// const getProduct = async () => {
-
-// const response = await fetch(baseUrl, {method: "GET"});
-// const data = await response.json();
-
-// console.log(data);
-
-// };
-
-// getProduct();
-
-// ************************************************************ ES5
-
-
-
+// ✅ Initial load
+getProducts();
